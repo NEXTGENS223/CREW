@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@altvmar — Artista Urbano</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --red: #dc2626;
+      --red-glow: rgba(220,38,38,0.35);
+      --red-dim: rgba(220,38,38,0.12);
+      --white: #f5f5f5;
+      --black: #050505;
+      --grey: #141414;
+      --grey2: #1e1e1e;
+      --grey3: #2a2a2a;
+      --muted: #5a5a5a;
+      --muted2: #888;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── CURSOR ── */
+    .cursor { width: 8px; height: 8px; background: var(--red); border-radius: 50%; position: fixed; pointer-events: none; z-index: 99999; transform: translate(-50%,-50%); }
+    .cursor-ring { width: 34px; height: 34px; border: 1.5px solid rgba(220,38,38,0.5); border-radius: 50%; position: fixed; pointer-events: none; z-index: 99998; transform: translate(-50%,-50%); transition: width 0.2s, height 0.2s, border-color 0.2s; }
+    .cursor-ring.hovering { width: 54px; height: 54px; border-color: var(--red); }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--red); }
+
+    /* ── PRELOADER ── */
+    #preloader {
+      position: fixed; inset: 0; background: var(--black); z-index: 99997;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #preloader.hidden { opacity: 0; visibility: hidden; }
+    .pre-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem; letter-spacing: 8px; color: var(--white);
+      animation: preFlicker 0.08s steps(1) infinite alternate;
+    }
+    .pre-logo span { color: var(--red); }
+    .pre-bar-wrap { width: 200px; height: 1px; background: var(--grey3); margin-top: 28px; overflow: hidden; }
+    .pre-bar { height: 100%; background: var(--red); width: 0%; transition: width 0.04s linear; }
+    .pre-pct { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted2); margin-top: 12px; letter-spacing: 3px; }
+    @keyframes preFlicker { 0%{opacity:1} 100%{opacity:0.92} }
+
+    /* ── NAVBAR ── */
+    #mainNav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 22px 0;
+      transition: padding 0.4s, background 0.4s, backdrop-filter 0.4s;
+    }
+    #mainNav.scrolled { padding: 10px 0; background: rgba(5,5,5,0.94); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; letter-spacing: 3px; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--red); }
+    .navbar-nav .nav-link { color: rgba(245,245,245,0.55) !important; font-size: 0.73rem; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; padding: 6px 13px !important; transition: color 0.25s; position: relative; }
+    .navbar-nav .nav-link::after { content: ''; position: absolute; bottom: 0; left: 13px; right: 13px; height: 1px; background: var(--red); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+    .navbar-nav .nav-link:hover { color: var(--white) !important; }
+    .navbar-nav .nav-link:hover::after { transform: scaleX(1); }
+    .navbar-toggler { border: 1px solid rgba(255,255,255,0.15); padding: 5px 9px; }
+    .navbar-toggler-icon { filter: invert(1); }
+
+    /* ── HERO ── */
+    #hero { position: relative; height: 100vh; min-height: 600px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    #heroBg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 60%, #200000 0%, #0a0000 40%, var(--black) 100%); z-index: 0; }
+    .hero-particles { position: absolute; inset: 0; z-index: 1; }
+    .hero-video-wrap { position: absolute; inset: 0; z-index: 2; overflow: hidden; }
+    .hero-video-wrap video { width: 100%; height: 100%; object-fit: cover; opacity: 0.15; filter: saturate(0) brightness(0.4); }
+    .hero-gradient { position: absolute; inset: 0; z-index: 3; background: linear-gradient(to bottom, rgba(5,5,5,0.1) 0%, rgba(5,5,5,0.3) 50%, rgba(5,5,5,0.95) 100%); }
+    /* Glitch scanlines */
+    .hero-scanlines { position: absolute; inset: 0; z-index: 4; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+    .hero-content { position: relative; z-index: 5; width: 100%; text-align: center; }
+    .hero-tag-wrap { display: block; width: 100%; text-align: center; margin-bottom: 26px; opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+    .hero-tag { display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 5px; text-transform: uppercase; color: var(--red); border: 1px solid var(--red); padding: 5px 16px; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5rem, 16vw, 13rem); line-height: 0.88; letter-spacing: 4px; color: var(--white); opacity: 0; animation: fadeUp 0.9s 0.6s forwards; position: relative; display: inline-block; }
+    .hero-title .accent { color: var(--red); }
+    .hero-title-glow { position: absolute; inset: 0; font-family: 'Bebas Neue', sans-serif; font-size: inherit; line-height: inherit; letter-spacing: inherit; color: var(--red); filter: blur(40px); opacity: 0.2; pointer-events: none; z-index: -1; }
+    .hero-sub { font-size: 0.78rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(245,245,245,0.4); margin-top: 18px; opacity: 0; animation: fadeUp 0.9s 0.8s forwards; }
+    .hero-btns { margin-top: 42px; opacity: 0; animation: fadeUp 0.9s 1s forwards; }
+    /* Marquee strip */
+    .hero-marquee-wrap { position: absolute; bottom: 80px; left: 0; right: 0; z-index: 5; overflow: hidden; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .hero-marquee { display: flex; gap: 0; white-space: nowrap; animation: marquee 18s linear infinite; }
+    .hero-marquee span { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 5px; color: rgba(245,245,245,0.15); padding: 0 32px; }
+    .hero-marquee span.red-dot::before { content: '●'; color: var(--red); margin-right: 32px; font-size: 0.5rem; vertical-align: middle; }
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .scroll-arrow { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0; animation: fadeUp 1s 1.5s forwards; }
+    .scroll-arrow span { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 3px; color: rgba(245,245,245,0.25); text-transform: uppercase; }
+    .scroll-arrow-line { width: 1px; height: 42px; background: linear-gradient(to bottom, var(--red), transparent); animation: scrollPulse 1.8s ease-in-out infinite; }
+    @keyframes scrollPulse { 0%,100%{opacity:0.2;transform:scaleY(1)} 50%{opacity:1;transform:scaleY(1.1)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── STREAMING STRIP ── */
+    #streaming { padding: 22px 0; background: var(--grey); border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); overflow: hidden; }
+    .stream-track { display: flex; gap: 10px; align-items: center; animation: marquee 22s linear infinite; }
+    .stream-item { display: flex; align-items: center; gap: 12px; padding: 0 30px; flex-shrink: 0; }
+    .stream-icon { font-size: 1.1rem; }
+    .stream-icon.spotify { color: #1DB954; }
+    .stream-icon.apple { color: #fc3c44; }
+    .stream-icon.yt-music { color: #ff0000; }
+    .stream-icon.tidal { color: #fff; }
+    .stream-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted2); }
+    .stream-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.1); }
+
+    /* ── SECTIONS BASE ── */
+    section { padding: 110px 0; }
+    .section-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 5px; text-transform: uppercase; color: var(--red); margin-bottom: 10px; display: block; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.6rem, 6vw, 5rem); letter-spacing: 2px; line-height: 1; color: var(--white); }
+    .divider-line { width: 44px; height: 2px; background: var(--red); margin: 20px 0; }
+    .reveal { opacity: 0; transform: translateY(38px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.22s; }
+    .reveal-delay-3 { transition-delay: 0.34s; }
+    .reveal-delay-4 { transition-delay: 0.46s; }
+    .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.7s, transform 0.7s; }
+    .reveal-left.visible { opacity: 1; transform: translateX(0); }
+    .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity 0.7s, transform 0.7s; }
+    .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+    /* ── BTNS ── */
+    .btn-red { background: var(--red); color: var(--white); border: none; padding: 13px 32px; font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; border-radius: 0; transition: background 0.3s, transform 0.2s, box-shadow 0.3s; text-decoration: none; display: inline-block; }
+    .btn-red:hover { background: #b91c1c; color: var(--white); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(220,38,38,0.35); }
+    .btn-outline-wh { background: transparent; color: var(--white); border: 1px solid rgba(245,245,245,0.25); padding: 13px 32px; font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; border-radius: 0; transition: border-color 0.3s, transform 0.2s, background 0.3s; text-decoration: none; display: inline-block; }
+    .btn-outline-wh:hover { border-color: var(--white); background: rgba(245,245,245,0.06); color: var(--white); transform: translateY(-2px); }
+
+    /* ── ABOUT ── */
+    #sobre { background: var(--black); }
+    .about-text { font-size: 0.93rem; line-height: 1.9; color: rgba(245,245,245,0.55); max-width: 520px; }
+    .stat-block { border-left: 2px solid var(--red); padding-left: 18px; }
+    .stat-number { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); line-height: 1; }
+    .stat-label { font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+    .about-visual { position: relative; aspect-ratio: 3/4; max-height: 520px; overflow: hidden; }
+    .about-visual-inner { width: 100%; height: 100%; background: linear-gradient(135deg, #180000 0%, #0a0000 100%); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .about-visual-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(220,38,38,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(220,38,38,0.07) 1px, transparent 1px); background-size: 38px 38px; }
+    .about-visual-label { position: relative; z-index: 2; font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: var(--red); letter-spacing: 4px; text-shadow: 0 0 80px rgba(220,38,38,0.6); }
+    .about-corner.tl { position: absolute; top: 0; left: 0; width: 28px; height: 28px; border-top: 2px solid var(--red); border-left: 2px solid var(--red); }
+    .about-corner.br { position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; border-bottom: 2px solid var(--red); border-right: 2px solid var(--red); }
+
+    /* ── DISCOGRAPHY ── */
+    #discografia { background: #080808; }
+    .disco-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+    .disco-card { position: relative; cursor: pointer; }
+    .disco-cover { aspect-ratio: 1; background: var(--grey2); position: relative; overflow: hidden; }
+    .disco-cover-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; transition: transform 0.4s ease; }
+    .disco-card:hover .disco-cover-inner { transform: scale(1.04); }
+    .disco-cover-bg { position: absolute; inset: 0; }
+    .disco-num { font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: rgba(220,38,38,0.1); position: absolute; bottom: -10px; right: 6px; }
+    .disco-cover-title { position: relative; z-index: 2; font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 3px; color: var(--white); text-align: center; line-height: 1.1; padding: 12px; }
+    .disco-overlay { position: absolute; inset: 0; background: rgba(220,38,38,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; opacity: 0; transition: opacity 0.3s; }
+    .disco-card:hover .disco-overlay { opacity: 1; }
+    .disco-overlay i { font-size: 1.8rem; color: white; }
+    .disco-overlay span { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: white; }
+    .disco-info { padding: 14px 0 0; }
+    .disco-info h5 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; color: var(--white); margin-bottom: 3px; }
+    .disco-info span { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+    .disco-type { display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--red); color: var(--red); margin-bottom: 6px; }
+
+    /* ── LYRICS / QUOTE SECTION ── */
+    #letra {
+      background: var(--black);
+      padding: 90px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .letra-bg-text {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(6rem, 20vw, 18rem);
+      color: rgba(220,38,38,0.04);
+      white-space: nowrap;
+      pointer-events: none;
+      letter-spacing: 10px;
+    }
+    .letra-quote {
+      position: relative; z-index: 2;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      line-height: 1.1;
+      letter-spacing: 2px;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .letra-quote .line { display: block; }
+    .letra-quote .line-red { color: var(--red); }
+    .letra-attribution {
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 28px;
+    }
+    .letra-attribution::before { content: '— '; }
+
+    /* ── VIDEOS ── */
+    #videos { background: #060606; }
+    .video-card { position: relative; overflow: hidden; background: var(--grey); cursor: pointer; transition: transform 0.35s ease, box-shadow 0.35s ease; }
+    .video-card:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(0,0,0,0.7); }
+    .video-thumb { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+    .video-thumb video { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.4) brightness(0.65); transition: filter 0.4s; }
+    .video-card:hover .video-thumb video { filter: saturate(0.8) brightness(0.85); }
+    .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 50px; height: 50px; border-radius: 50%; background: rgba(220,38,38,0.9); display: flex; align-items: center; justify-content: center; transition: transform 0.3s, background 0.3s; z-index: 2; }
+    .play-btn i { color: white; font-size: 1rem; margin-left: 3px; }
+    .video-card:hover .play-btn { transform: translate(-50%,-50%) scale(1.18); background: var(--red); box-shadow: 0 0 24px rgba(220,38,38,0.5); }
+    .video-duration { position: absolute; bottom: 10px; right: 10px; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: white; background: rgba(0,0,0,0.75); padding: 2px 7px; z-index: 2; letter-spacing: 1px; }
+    .video-info { padding: 18px 20px 22px; }
+    .video-info h5 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; font-size: 1.2rem; color: var(--white); margin-bottom: 6px; }
+    .video-info p { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+    .video-views { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--red); letter-spacing: 2px; margin-top: 8px; }
+    .yt-bar { height: 2px; background: var(--red); width: 0; transition: width 0.5s ease; }
+    .video-card:hover .yt-bar { width: 100%; }
+    .btn-yt { display: inline-flex; align-items: center; gap: 10px; background: transparent; color: var(--white); border: 1px solid rgba(245,245,245,0.18); padding: 13px 30px; font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; transition: border-color 0.3s, background 0.3s; }
+    .btn-yt:hover { border-color: var(--red); background: var(--red-dim); color: var(--white); }
+
+    /* ── EQUIPO ── */
+    #equipo { background: var(--black); }
+    .crew-card { background: var(--grey); border: 1px solid rgba(255,255,255,0.04); overflow: hidden; text-align: center; padding: 38px 24px 32px; transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s; position: relative; }
+    .crew-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--red); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+    .crew-card:hover { transform: translateY(-10px); box-shadow: 0 28px 70px rgba(0,0,0,0.55); border-color: rgba(220,38,38,0.15); }
+    .crew-card:hover::before { transform: scaleX(1); }
+    .crew-ig { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: rgba(245,245,245,0.3); font-size: 0.75rem; transition: border-color 0.3s, color 0.3s, background 0.3s; text-decoration: none; }
+    .crew-card:hover .crew-ig { border-color: var(--red); color: white; background: var(--red); }
+    .crew-avatar { width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 20px; background: linear-gradient(135deg, #2a0000, #1a1a1a); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: var(--red); border: 2px solid rgba(220,38,38,0.2); transition: border-color 0.3s, box-shadow 0.3s; }
+    .crew-card:hover .crew-avatar { border-color: var(--red); box-shadow: 0 0 20px rgba(220,38,38,0.3); }
+    .crew-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: var(--white); }
+    .crew-role { font-size: 0.68rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+    .crew-role span { color: var(--red); }
+
+/* ── GALERÍA / PRESS ── */
+#galeria { background: #080808; padding: 110px 0; }
+.gallery-grid { 
+    display: grid; 
+    grid-template-columns: repeat(12, 1fr); 
+    grid-auto-rows: auto; 
+    gap: 6px; 
+}
+.g-item { 
+    overflow: hidden; 
+    position: relative; 
+    cursor: pointer; 
+    align-self: start;
+}
+.g-item:nth-child(1) { grid-column: span 5; grid-row: span 3; }
+.g-item:nth-child(2) { grid-column: span 4; grid-row: span 2; }
+.g-item:nth-child(3) { grid-column: span 3; grid-row: span 2; }
+.g-item:nth-child(4) { grid-column: span 4; grid-row: span 2; }
+.g-item:nth-child(5) { grid-column: span 3; grid-row: span 1; }
+.g-item:nth-child(6) { grid-column: span 7; grid-row: span 2; }
+.g-item:nth-child(7) { grid-column: span 5; grid-row: span 1; }
+
+.g-inner { 
+    width: 100%; 
+    position: relative; 
+    overflow: hidden;
+}
+
+.g-inner img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.g-item:hover .g-inner img { 
+    transform: scale(1.04);
+}
+
+.g-label { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    padding: 12px 14px 10px; 
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); 
+    opacity: 0; 
+    transition: opacity 0.3s; 
+    z-index: 2;
+}
+.g-item:hover .g-label { opacity: 1; }
+.g-label span { 
+    font-family: 'Space Mono', monospace; 
+    font-size: 0.6rem; 
+    letter-spacing: 2px; 
+    color: var(--white); 
+    text-transform: uppercase; 
+}
+
+/* Elimina los estilos antiguos (g-bg-1, g-bg-2, etc) */
+    .g-bg-1 { background: linear-gradient(135deg, #1a0000, #3d0000); }
+    .g-bg-2 { background: linear-gradient(135deg, #0d0d0d, #2a0a00); }
+    .g-bg-3 { background: linear-gradient(45deg, #0a0a0a, #1a0505); }
+    .g-bg-4 { background: linear-gradient(135deg, #200000, #0d0d0d); }
+    .g-bg-5 { background: linear-gradient(135deg, #0a0000, #1a1a1a); }
+    .g-bg-6 { background: linear-gradient(135deg, #1a0a00, #0d0000); }
+    .g-bg-7 { background: linear-gradient(45deg, #0d0000, #2a0000); }
+    .g-icon { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 5vw, 5rem); color: rgba(220,38,38,0.15); letter-spacing: 3px; }
+
+    /* ── PRESS / PRENSA ── */
+    #prensa { background: var(--black); padding: 90px 0; }
+    .press-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: rgba(255,255,255,0.05); }
+    .press-card { background: var(--black); padding: 36px 32px; transition: background 0.3s; }
+    .press-card:hover { background: var(--grey); }
+    .press-quote { font-size: 0.9rem; font-style: italic; color: rgba(245,245,245,0.65); line-height: 1.8; margin-bottom: 20px; position: relative; padding-left: 18px; }
+    .press-quote::before { content: '"'; position: absolute; left: 0; top: -4px; font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--red); line-height: 1; }
+    .press-source { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--red); }
+
+    /* ── TIMELINE ── */
+    #timeline { background: #060606; }
+    .tl-line { position: relative; padding-left: 40px; }
+    .tl-line::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--red), transparent); }
+    .tl-item { position: relative; margin-bottom: 48px; }
+    .tl-dot { position: absolute; left: -36px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px rgba(220,38,38,0.6); }
+    .tl-year { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 3px; color: var(--red); text-transform: uppercase; margin-bottom: 6px; }
+    .tl-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: var(--white); margin-bottom: 6px; }
+    .tl-desc { font-size: 0.85rem; color: var(--muted2); line-height: 1.7; max-width: 420px; }
+
+    /* ── EVENTOS ── */
+    #eventos { background: var(--black); }
+    .event-card { display: flex; align-items: center; gap: 28px; background: var(--grey); border: 1px solid rgba(255,255,255,0.04); padding: 26px 32px; transition: transform 0.3s ease, border-color 0.3s, box-shadow 0.3s; position: relative; overflow: hidden; }
+    .event-card::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); transform: scaleY(0); transform-origin: top; transition: transform 0.35s ease; }
+    .event-card:hover { transform: translateX(8px); border-color: rgba(220,38,38,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+    .event-card:hover::after { transform: scaleY(1); }
+    .event-date { min-width: 66px; text-align: center; }
+    .event-day { font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem; color: var(--red); line-height: 1; }
+    .event-mon { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+    .event-sep { width: 1px; height: 46px; background: rgba(255,255,255,0.07); flex-shrink: 0; }
+    .event-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: var(--white); }
+    .event-city { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+    .event-city i { color: var(--red); margin-right: 5px; }
+    .event-badge { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; padding: 3px 9px; text-transform: uppercase; }
+    .badge-sold { background: rgba(220,38,38,0.15); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+    .badge-new { background: rgba(245,245,245,0.05); color: var(--muted2); border: 1px solid rgba(255,255,255,0.1); }
+    .btn-tickets { margin-left: auto; flex-shrink: 0; background: transparent; color: var(--white); border: 1px solid rgba(245,245,245,0.15); padding: 10px 22px; font-size: 0.67rem; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; transition: background 0.3s, border-color 0.3s; white-space: nowrap; }
+    .btn-tickets:hover { background: var(--red); border-color: var(--red); color: white; }
+
+    /* ── CONTACTO FORM ── */
+    #contacto-form { background: #060606; }
+    .contact-wrap { background: var(--grey); border: 1px solid rgba(255,255,255,0.05); padding: 56px 48px; position: relative; overflow: hidden; }
+    .contact-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(to right, var(--red), transparent); }
+    .form-field { margin-bottom: 22px; }
+    .form-field label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px; display: block; }
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+      width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: var(--white);
+      padding: 13px 16px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+      transition: border-color 0.3s, background 0.3s; outline: none; border-radius: 0;
+      -webkit-appearance: none;
+    }
+    .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--red); background: rgba(220,38,38,0.04); }
+    .form-field textarea { min-height: 120px; resize: vertical; }
+    .form-field select option { background: #1a1a1a; }
+    .contact-info-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+    .contact-info-item i { color: var(--red); margin-top: 3px; font-size: 0.9rem; min-width: 16px; }
+    .contact-info-item div { font-size: 0.85rem; line-height: 1.6; }
+    .contact-info-item .ci-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+    .contact-info-item .ci-val { color: rgba(245,245,245,0.7); }
+    .form-success { display: none; text-align: center; padding: 28px 0; }
+    .form-success i { font-size: 2.5rem; color: var(--red); margin-bottom: 14px; }
+    .form-success h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; }
+    .form-success p { font-size: 0.82rem; color: var(--muted2); margin-top: 6px; }
+
+    /* ── NEWSLETTER ── */
+    #newsletter { background: var(--red); padding: 70px 0; }
+    .nl-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 5vw, 3.8rem); letter-spacing: 3px; color: white; }
+    .nl-sub { font-size: 0.82rem; color: rgba(255,255,255,0.7); letter-spacing: 1px; margin-top: 10px; }
+    .nl-form { display: flex; gap: 0; max-width: 460px; }
+    .nl-input { flex: 1; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.25); border-right: none; color: white; padding: 13px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; outline: none; border-radius: 0; }
+    .nl-input::placeholder { color: rgba(255,255,255,0.5); }
+    .nl-input:focus { background: rgba(0,0,0,0.35); border-color: white; }
+    .nl-btn { background: black; color: white; border: 1px solid black; padding: 13px 22px; font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; white-space: nowrap; }
+    .nl-btn:hover { background: #111; }
+
+    /* ── FOOTER ── */
+    footer { background: #020202; border-top: 1px solid rgba(255,255,255,0.05); padding: 70px 0 36px; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 4px; color: var(--white); }
+    .footer-logo span { color: var(--red); }
+    .footer-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.8; margin-top: 14px; max-width: 260px; }
+    .social-icons { display: flex; gap: 10px; margin-top: 20px; }
+    .social-icon { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: rgba(245,245,245,0.35); font-size: 0.8rem; transition: border-color 0.3s, color 0.3s, background 0.3s; text-decoration: none; }
+    .social-icon:hover { border-color: var(--red); color: white; background: var(--red-dim); }
+    .footer-heading { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 4px; text-transform: uppercase; color: var(--red); margin-bottom: 20px; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 9px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; transition: color 0.25s, padding-left 0.25s; display: inline-block; }
+    .footer-links a:hover { color: var(--white); padding-left: 6px; }
+    .footer-contact-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .footer-contact-item i { color: var(--red); margin-top: 3px; font-size: 0.82rem; }
+    .footer-contact-item span { font-size: 0.82rem; color: var(--muted); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 50px; padding-top: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .footer-copy { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 2px; color: rgba(255,255,255,0.12); }
+
+    /* ── AUDIO PLAYER BAR ── */
+    #audioPlayer {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+      background: rgba(8,8,8,0.98);
+      backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 220px 1fr 220px;
+      align-items: center;
+      height: 72px;
+      gap: 16px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+    #audioPlayer.visible { transform: translateY(0); }
+
+    /* Left: track info */
+    .ap-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .ap-cover {
+      width: 44px; height: 44px; flex-shrink: 0;
+      background: linear-gradient(135deg, #2a0000, #1a1a1a);
+      border: 1px solid rgba(220,38,38,0.3);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .ap-cover-art {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem; letter-spacing: 2px; color: var(--red);
+      transition: opacity 0.3s;
+    }
+    .ap-cover.spinning .ap-cover-art { animation: coverSpin 8s linear infinite; }
+    @keyframes coverSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .ap-track-info { min-width: 0; }
+    .ap-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+    .ap-artist { font-size: 0.6rem; color: var(--muted2); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+    .ap-like { background: none; border: none; color: rgba(245,245,245,0.25); font-size: 0.85rem; cursor: pointer; padding: 4px; transition: color 0.25s, transform 0.2s; margin-left: 4px; flex-shrink: 0; }
+    .ap-like:hover, .ap-like.liked { color: var(--red); transform: scale(1.15); }
+
+    /* Center: controls + progress */
+    .ap-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .ap-controls { display: flex; align-items: center; gap: 14px; }
+    .ap-btn { background: none; border: none; color: rgba(245,245,245,0.45); font-size: 0.85rem; cursor: pointer; transition: color 0.2s, transform 0.15s; padding: 4px; line-height: 1; }
+    .ap-btn:hover { color: var(--white); transform: scale(1.1); }
+    .ap-btn.active { color: var(--red) !important; }
+    .ap-btn.play-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--white); color: var(--black) !important;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; transition: background 0.2s, transform 0.15s;
+    }
+    .ap-btn.play-btn:hover { background: var(--red); color: white !important; transform: scale(1.08); }
+    .ap-btn.play-btn i { margin-left: 2px; }
+    .ap-btn.play-btn.paused i { margin-left: 0; }
+
+    .ap-progress-wrap { width: 100%; }
+    .ap-progress-row { display: flex; align-items: center; gap: 10px; }
+    .ap-time-cur, .ap-time-tot {
+      font-family: 'Space Mono', monospace; font-size: 0.58rem;
+      color: var(--muted); flex-shrink: 0; min-width: 30px;
+    }
+    .ap-time-tot { text-align: right; }
+    .ap-progress {
+      flex: 1; height: 3px; background: rgba(255,255,255,0.1);
+      position: relative; cursor: pointer; border-radius: 2px;
+    }
+    .ap-progress:hover { height: 5px; }
+    .ap-progress-fill { height: 100%; background: var(--red); border-radius: 2px; pointer-events: none; position: relative; transition: width 0.1s linear; }
+    .ap-progress-fill::after {
+      content: ''; position: absolute; right: -5px; top: 50%;
+      transform: translateY(-50%);
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--white);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .ap-progress:hover .ap-progress-fill::after { opacity: 1; }
+
+    /* Waveform visualizer */
+    .ap-visualizer { display: flex; align-items: center; gap: 2px; height: 18px; margin-left: 4px; }
+    .ap-bar {
+      width: 3px; background: var(--red);
+      border-radius: 2px; opacity: 0.7;
+      animation: none;
+      height: 3px;
+      transition: height 0.1s;
+    }
+    .ap-bar.active { animation: barPulse var(--dur, 0.5s) ease-in-out infinite alternate; }
+    @keyframes barPulse { from { height: 3px; } to { height: var(--h, 14px); } }
+
+    /* Right: volume + extras */
+    .ap-right { display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+    .ap-vol-wrap { display: flex; align-items: center; gap: 8px; }
+    .ap-vol-icon { background: none; border: none; color: rgba(245,245,245,0.4); font-size: 0.8rem; cursor: pointer; padding: 0; transition: color 0.2s; }
+    .ap-vol-icon:hover { color: var(--white); }
+    .ap-vol-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 70px; height: 3px;
+      background: linear-gradient(to right, var(--red) 70%, rgba(255,255,255,0.1) 70%);
+      border-radius: 2px; cursor: pointer; outline: none;
+    }
+    .ap-vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--white); cursor: pointer; }
+    .ap-queue-btn { background: none; border: none; color: rgba(245,245,245,0.35); font-size: 0.78rem; cursor: pointer; padding: 4px; transition: color 0.2s; }
+    .ap-queue-btn:hover { color: var(--white); }
+    .ap-close { background: none; border: none; color: rgba(245,245,245,0.2); font-size: 0.85rem; cursor: pointer; padding: 4px; transition: color 0.25s; }
+    .ap-close:hover { color: var(--red); }
+
+    /* Queue panel */
+    #apQueue {
+      position: fixed; bottom: 72px; right: 0; width: 300px;
+      background: rgba(12,12,12,0.98); backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.07); border-right: none;
+      z-index: 998;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      max-height: 400px; overflow-y: auto;
+    }
+    #apQueue.open { transform: translateX(0); }
+    .queue-header { padding: 16px 20px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .queue-header h6 { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 4px; text-transform: uppercase; color: var(--red); margin: 0; }
+    .queue-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .queue-item:hover { background: rgba(220,38,38,0.07); }
+    .queue-item.current { background: rgba(220,38,38,0.1); }
+    .queue-item.current .q-num { color: var(--red); }
+    .q-num { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); width: 18px; flex-shrink: 0; }
+    .q-art { width: 32px; height: 32px; background: var(--grey2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Bebas Neue', sans-serif; font-size: 0.65rem; color: var(--red); }
+    .q-info { flex: 1; min-width: 0; }
+    .q-title { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 1.5px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-meta { font-size: 0.62rem; color: var(--muted); letter-spacing: 1px; }
+    .q-dur { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); flex-shrink: 0; }
+
+    @media (max-width: 768px) {
+      #audioPlayer { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; padding: 12px 16px; gap: 10px; }
+      .ap-left { order: 1; }
+      .ap-center { order: 2; width: 100%; }
+      .ap-right { order: 3; justify-content: space-between; width: 100%; }
+      #apQueue { width: 100%; right: 0; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 991px) {
+      .gallery-grid { grid-template-columns: repeat(6, 1fr); grid-auto-rows: auto; }
+      .g-item:nth-child(1) { grid-column: span 6; grid-row: span 2; }
+      .g-item:nth-child(2) { grid-column: span 3; grid-row: span 2; }
+      .g-item:nth-child(3) { grid-column: span 3; grid-row: span 2; }
+      .g-item:nth-child(4) { grid-column: span 3; grid-row: span 2; }
+      .g-item:nth-child(5) { grid-column: span 3; grid-row: span 2; }
+      .g-item:nth-child(6) { grid-column: span 6; grid-row: span 2; }
+      .g-item:nth-child(7) { grid-column: span 6; grid-row: span 1; }
+    }
+    @media (max-width: 768px) {
+      section { padding: 80px 0; }
+      .about-visual { display: none; }
+      .event-card { flex-wrap: wrap; }
+      .btn-tickets { margin-left: 0; }
+      .contact-wrap { padding: 36px 24px; }
+      .nl-form { flex-direction: column; }
+      .nl-input { border-right: 1px solid rgba(255,255,255,0.25); }
+      #audioPlayer { flex-wrap: wrap; gap: 12px; padding: 10px 16px; }
+      .ap-progress-wrap { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── PRELOADER ── -->
+<div id="preloader">
+  <div class="pre-logo"><span>@</span>altvmar</div>
+  <div class="pre-bar-wrap"><div class="pre-bar" id="preBar"></div></div>
+  <div class="pre-pct" id="prePct">0%</div>
+</div>
+
+<!-- ── CURSOR ── -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ── AUDIO PLAYER ── -->
+<div id="audioPlayer">
+  <!-- Left: track info -->
+  <div class="ap-left">
+    <div class="ap-cover" id="apCover">
+      <div class="ap-cover-art" id="apCoverArt">SM</div>
+    </div>
+    <div class="ap-track-info">
+      <div class="ap-title" id="apTitle">Sin Miedo</div>
+      <div class="ap-artist">@altvmar</div>
+    </div>
+    <button class="ap-like" id="apLike" onclick="toggleLike()"><i class="far fa-heart"></i></button>
+  </div>
+
+  <!-- Center: controls + progress -->
+  <div class="ap-center">
+    <div class="ap-controls">
+      <button class="ap-btn" id="apShuffle" onclick="toggleShuffle()" title="Shuffle"><i class="fas fa-random"></i></button>
+      <button class="ap-btn" onclick="prevTrack()" title="Anterior"><i class="fas fa-step-backward"></i></button>
+      <button class="ap-btn play-btn" id="apPlayBtn" onclick="togglePlay()"><i class="fas fa-play" id="apIcon"></i></button>
+      <button class="ap-btn" onclick="nextTrack()" title="Siguiente"><i class="fas fa-step-forward"></i></button>
+      <button class="ap-btn" id="apRepeat" onclick="toggleRepeat()" title="Repetir"><i class="fas fa-redo"></i></button>
+    </div>
+    <div class="ap-progress-wrap">
+      <div class="ap-progress-row">
+        <span class="ap-time-cur" id="apCur">0:00</span>
+        <div class="ap-progress" id="apProgressBar">
+          <div class="ap-progress-fill" id="apFill" style="width:0%"></div>
+        </div>
+        <div class="ap-visualizer" id="apViz">
+          <div class="ap-bar" style="--dur:0.4s;--h:12px"></div>
+          <div class="ap-bar" style="--dur:0.6s;--h:16px"></div>
+          <div class="ap-bar" style="--dur:0.3s;--h:8px"></div>
+          <div class="ap-bar" style="--dur:0.5s;--h:14px"></div>
+          <div class="ap-bar" style="--dur:0.45s;--h:10px"></div>
+        </div>
+        <span class="ap-time-tot" id="apTot">0:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: volume + queue + close -->
+  <div class="ap-right">
+    <div class="ap-vol-wrap">
+      <button class="ap-vol-icon" id="apVolIcon" onclick="toggleMute()"><i class="fas fa-volume-up"></i></button>
+      <input type="range" class="ap-vol-slider" id="apVolSlider" min="0" max="100" value="70" oninput="setVolume(this.value)" />
+    </div>
+    <button class="ap-queue-btn" onclick="toggleQueue()" title="Cola de reproducción"><i class="fas fa-list"></i></button>
+    <button class="ap-close" onclick="closePlayer()" title="Cerrar"><i class="fas fa-times"></i></button>
+  </div>
+</div>
+
+<!-- Queue Panel -->
+<div id="apQueue">
+  <div class="queue-header"><h6>Cola de Reproducción</h6></div>
+  <div id="queueList"></div>
+</div>
+
+<!-- ── NAVBAR ── -->
+<nav id="mainNav" class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="nav-logo" href="#inicio"><span>@</span>altvmar</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+      <ul class="navbar-nav gap-1">
+        <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="#sobre">Sobre</a></li>
+        <li class="nav-item"><a class="nav-link" href="#discografia">Música</a></li>
+        <li class="nav-item"><a class="nav-link" href="#videos">Videos</a></li>
+        <li class="nav-item"><a class="nav-link" href="#equipo">Equipo</a></li>
+        <li class="nav-item"><a class="nav-link" href="#galeria">Galería</a></li>
+        <li class="nav-item"><a class="nav-link" href="#eventos">Eventos</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contacto-form">Contacto</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section id="inicio" style="padding:0">
+  <div id="hero">
+    <div id="heroBg"></div>
+    <canvas id="particleCanvas" class="hero-particles"></canvas>
+    <div class="hero-video-wrap">
+      <video autoplay muted loop playsinline>
+        <source src="assets/hero-bg.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="hero-gradient"></div>
+    <div class="hero-scanlines"></div>
+
+    <div class="hero-content container">
+      <div class="hero-tag-wrap"><span class="hero-tag">Artista Urbano — Cartagena, CO</span></div>
+      <h1 class="hero-title">
+        <span class="hero-title-glow" aria-hidden="true">@altvmar</span>
+        <span class="accent">@</span>altvmar
+      </h1>
+      <p class="hero-sub">Artista Urbano &nbsp;·&nbsp; Compositor &nbsp;·&nbsp; Intérprete</p>
+      <div class="hero-btns d-flex justify-content-center gap-3 flex-wrap">
+        <a href="#discografia" class="btn-red"><i class="fas fa-headphones me-2"></i>Escuchar Ahora</a>
+        <a href="#sobre" class="btn-outline-wh">Conocer Más</a>
+      </div>
+    </div>
+
+    <!-- Streaming marquee -->
+    <div class="hero-marquee-wrap">
+      <div class="hero-marquee">
+        <span>Disponible en Spotify</span><span class="red-dot">Disponible en Apple Music</span>
+        <span>Disponible en YouTube Music</span><span class="red-dot">Disponible en Tidal</span>
+        <span>Disponible en Deezer</span><span class="red-dot">Nuevo Sencillo Ya Disponible</span>
+        <span>Disponible en Spotify</span><span class="red-dot">Disponible en Apple Music</span>
+        <span>Disponible en YouTube Music</span><span class="red-dot">Disponible en Tidal</span>
+        <span>Disponible en Deezer</span><span class="red-dot">Nuevo Sencillo Ya Disponible</span>
+      </div>
+    </div>
+
+    <div class="scroll-arrow">
+      <span>Scroll</span>
+      <div class="scroll-arrow-line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STREAMING STRIP ── -->
+<div id="streaming">
+  <div class="container">
+    <div style="overflow:hidden">
+      <div class="stream-track">
+        <div class="stream-item"><i class="fab fa-spotify stream-icon spotify"></i><span class="stream-label">Spotify</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-apple stream-icon apple"></i><span class="stream-label">Apple Music</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-youtube stream-icon yt-music"></i><span class="stream-label">YouTube Music</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fas fa-music stream-icon tidal"></i><span class="stream-label">Tidal</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-deezer stream-icon" style="color:#feaa2d"></i><span class="stream-label">Deezer</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-spotify stream-icon spotify"></i><span class="stream-label">Spotify</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-apple stream-icon apple"></i><span class="stream-label">Apple Music</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-youtube stream-icon yt-music"></i><span class="stream-label">YouTube Music</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fas fa-music stream-icon tidal"></i><span class="stream-label">Tidal</span></div>
+        <div class="stream-sep"></div>
+        <div class="stream-item"><i class="fab fa-deezer stream-icon" style="color:#feaa2d"></i><span class="stream-label">Deezer</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SOBRE ── -->
+<section id="sobre">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="section-label reveal">Sobre el Artista</span>
+        <h2 class="section-title reveal reveal-delay-1">La Historia<br/>de @altvmar</h2>
+        <div class="divider-line reveal reveal-delay-2"></div>
+        <p class="about-text reveal reveal-delay-2">Nacido en el LIBANO, un barrio popular de Cartagena, @altvmar representa la nueva generación del urbano colombiano. Su música mezcla influencias del trap, el afrobeats y el R&B con letras cargadas de verdad y calle.</p>
+        <p class="about-text mt-3 reveal reveal-delay-3">Desde sus primeras grabaciones en un cuarto improvisado hasta los escenarios más grandes del país, @altvmar ha construido su camino con arte, disciplina y una visión clara: hacer que su música llegue a todos lados.</p>
+        <div class="row g-4 mt-3">
+          <div class="col-4 reveal reveal-delay-2">
+            <div class="stat-block">
+              <div class="stat-number counter" data-target="50" data-suffix="K+"><span class="counter-num">0</span><span class="counter-suffix" style="color:var(--red)">K+</span></div>
+              <div class="stat-label">Seguidores</div>
+            </div>
+          </div>
+          <div class="col-4 reveal reveal-delay-3">
+            <div class="stat-block">
+              <div class="stat-number counter" data-target="2" data-suffix="M+"><span class="counter-num">0</span><span class="counter-suffix" style="color:var(--red)">M+</span></div>
+              <div class="stat-label">Reproducciones</div>
+            </div>
+          </div>
+          <div class="col-4 reveal reveal-delay-4">
+            <div class="stat-block">
+              <div class="stat-number counter" data-target="50" data-suffix="+"><span class="counter-num">0</span><span class="counter-suffix" style="color:var(--red)">+</span></div>
+              <div class="stat-label">Shows en vivo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DISCOGRAFÍA ── -->
+<section id="discografia" style="background:#080808;">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5 flex-wrap gap-3">
+      <div>
+        <span class="section-label reveal">Discografía</span>
+        <h2 class="section-title reveal reveal-delay-1">Música</h2>
+      </div>
+      <a href="https://open.spotify.com/artist/2fhfhFDR9kq1TZ3MGJV53X" target="_blank"
+         class="btn-outline-wh reveal reveal-delay-2"
+         style="font-size:0.68rem;padding:10px 22px">
+        <i class="fab fa-spotify me-2" style="color:#1DB954"></i>Abrir en Spotify
+      </a>
+    </div>
+
+    <div class="reveal reveal-delay-1">
+      <iframe
+        id="spotifyEmbed"
+        src="https://open.spotify.com/embed/artist/2fhfhFDR9kq1TZ3MGJV53X?utm_source=generator&theme=0"
+        width="100%"
+        height="500"
+        frameborder="0"
+        allowfullscreen=""
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        style="border-radius:0; border: 1px solid rgba(255,255,255,0.06); display:block;">
+      </iframe>
+    </div>
+
+    <p class="reveal reveal-delay-2" style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:2px;color:var(--muted);text-align:center;margin-top:16px;text-transform:uppercase;">
+      Escucha directamente desde Spotify &nbsp;·&nbsp; Requiere cuenta gratuita para reproducción completa
+    </p>
+  </div>
+</section>
+
+<!-- ── LYRIC QUOTE ── -->
+<section id="letra">
+  <div class="letra-bg-text">ALTVMAR</div>
+  <div class="container">
+    <div class="letra-quote reveal">
+      <span class="line">Vine de la nada,</span>
+      <span class="line line-red">construí mi mundo</span>
+      <span class="line">desde el suelo.</span>
+    </div>
+    <div class="letra-attribution reveal reveal-delay-2">Sin Miedo, 2026</div>
+  </div>
+</section>
+
+
+
+
+<!-- ── EQUIPO ── -->
+<section id="equipo">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label reveal">El Crew</span>
+      <h2 class="section-title reveal reveal-delay-1">Conoce al Crew</h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-4 col-md-6 reveal reveal-delay-1">
+        <div class="crew-card">
+          <a href="#" class="crew-ig"><i class="fab fa-instagram"></i></a>
+          <div class="crew-avatar" style="padding:0;overflow:hidden;">
+            <img src="_1220868.jpg" alt="@altvmar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+          </div>
+          <div class="crew-name">@altvmar</div>
+          <div class="crew-role">Artista principal &nbsp;<span>|</span>&nbsp; Vocalista</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6 reveal reveal-delay-2">
+        <div class="crew-card">
+          <a href="#" class="crew-ig"><i class="fab fa-instagram"></i></a>
+          <div class="crew-avatar">AF</div>
+          <div class="crew-name">@afrobas</div>
+          <div class="crew-role">Productor musical &nbsp;<span>|</span>&nbsp; Beatmaker</div>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6 reveal reveal-delay-3">
+        <div class="crew-card">
+          <a href="#" class="crew-ig"><i class="fab fa-instagram"></i></a>
+            <div class="crew-avatar" style="padding:0;overflow:hidden;">
+            <img src="image.png" alt="db" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+            </div> 
+          <div class="crew-name">@dumb.szz</div>
+          <div class="crew-role">Creative director &nbsp;<span>|</span>&nbsp; Manager</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── GALERÍA ── -->
+<section id="galeria">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-label reveal">Momentos</span>
+      <h2 class="section-title reveal reveal-delay-1">Galería</h2>
+    </div>
+    <div class="gallery-grid">
+      <div class="g-item reveal reveal-delay-1">
+        <div class="g-inner">
+          <img src="_1220882.jpg" alt="THE CREW" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div class="g-label"><span>THE CREW</span></div>
+      </div>
+      <div class="g-item reveal reveal-delay-2">
+        <div class="g-inner">
+          <img src="_1220122.jpg" alt="Underground Stage" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div class="g-label"><span>Underground Stage</span></div>
+      </div>
+      <div class="g-item reveal reveal-delay-3">
+        <div class="g-inner">
+          <img src="_1110653.jpg" alt="Cartagena, 2025" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div class="g-label"><span>Cartagena, 2025</span></div>
+      </div>
+      <div class="g-item reveal reveal-delay-2">
+        <div class="g-inner">
+          <img src="_1080786.jpg" alt="Bogotá Session" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div class="g-label"><span>Bogotá Session</span></div>
+      </div>
+      <div class="g-item reveal reveal-delay-3">
+        <div class="g-inner">
+          <img src="_1220607.jpg" alt="El Crew" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div class="g-label"><span>El Crew</span></div>
+      </div>
+    
+      <div class="g-item reveal reveal-delay-3">
+        <div class="g-inner">
+          <img src="_1220406 - copia.jpg" alt="Grabación" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div class="g-label"><span>Grabación</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+<!-- ── NEWSLETTER ── -->
+<div id="newsletter">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <h3 class="nl-title reveal">Sé el Primero<br/>en Saber Todo</h3>
+        <p class="nl-sub reveal reveal-delay-1">Nuevas canciones, eventos exclusivos y contenido detrás de cámaras.</p>
+      </div>
+      <div class="col-lg-6 reveal reveal-delay-2">
+        <div class="nl-form">
+          <input type="email" class="nl-input" placeholder="tu@email.com" />
+          <button class="nl-btn">Suscribir</button>
+        </div>
+        <p style="font-size:0.62rem;color:rgba(255,255,255,0.5);margin-top:10px;letter-spacing:1px">Sin spam. Solo lo que importa.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTACTO FORM ── -->
+<section id="contacto-form">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <span class="section-label reveal">Hablemos</span>
+        <h2 class="section-title reveal reveal-delay-1">Contacto</h2>
+        <div class="divider-line reveal reveal-delay-2"></div>
+        <p class="about-text reveal reveal-delay-2">Para bookings, colaboraciones, prensa o cualquier propuesta seria, escríbenos y respondemos en 48 horas.</p>
+        <div class="mt-4">
+          <div class="contact-info-item reveal reveal-delay-2">
+            <i class="fas fa-envelope"></i>
+            <div><div class="ci-label">Email General</div><div class="ci-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dfbdb0b0b4b6b1b89fbeb3aba9b2beadf1bcb0b2">[email&#160;protected]</a></div></div>
+          </div>
+          <div class="contact-info-item reveal reveal-delay-3">
+            <i class="fas fa-headset"></i>
+            <div><div class="ci-label">Management</div><div class="ci-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="117c707f7076746351707d65677c70633f727e7c">[email&#160;protected]</a></div></div>
+          </div>
+          <div class="contact-info-item reveal reveal-delay-4">
+            <i class="fas fa-phone"></i>
+            <div><div class="ci-label">Teléfono</div><div class="ci-val">+57 300 000 0000</div></div>
+          </div>
+          <div class="contact-info-item reveal reveal-delay-4">
+            <i class="fas fa-map-marker-alt"></i>
+            <div><div class="ci-label">Base</div><div class="ci-val">Cartagena de Indias, Bolívar, Colombia</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7 reveal reveal-delay-2">
+        <div class="contact-wrap">
+          <div id="formContent">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-field">
+                  <label>Nombre</label>
+                  <input type="text" placeholder="Tu nombre completo" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-field">
+                  <label>Email</label>
+                  <input type="email" placeholder="tu@email.com" />
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-field">
+                  <label>Tipo de consulta</label>
+                  <select>
+                    <option value="" disabled selected>Selecciona una opción</option>
+                    <option>Booking / Show</option>
+                    <option>Colaboración Musical</option>
+                    <option>Prensa y Medios</option>
+                    <option>Patrocinio / Marca</option>
+                    <option>Otro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-field">
+                  <label>Mensaje</label>
+                  <textarea placeholder="Cuéntanos sobre tu propuesta..."></textarea>
+                </div>
+              </div>
+              <div class="col-12">
+                <button class="btn-red w-100" onclick="submitForm()" style="border:none;cursor:pointer;text-align:center">
+                  <i class="fas fa-paper-plane me-2"></i>Enviar Mensaje
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-success" id="formSuccess">
+            <i class="fas fa-check-circle"></i>
+            <h4>Mensaje Enviado</h4>
+            <p>Te respondemos en menos de 48 horas. ¡Gracias!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer id="contacto">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-4">
+        <div class="footer-logo"><span>@</span>altvmar</div>
+        <p class="footer-desc">Música urbana con alma. Construyendo una era desde la costa caribe colombiana hacia el mundo.</p>
+        <div class="social-icons">
+          <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-spotify"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="footer-heading">Explorar</div>
+        <ul class="footer-links">
+          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#discografia">Música</a></li>
+          <li><a href="#videos">Videos</a></li>
+          <li><a href="#equipo">Equipo</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#eventos">Eventos</a></li>
+          <li><a href="#contacto-form">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <div class="footer-heading">Contacto</div>
+        <div class="footer-contact-item"><i class="fas fa-envelope"></i><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="177578787c7e797057767b63617a76653974787a">[email&#160;protected]</a></span></div>
+        <div class="footer-contact-item"><i class="fas fa-phone"></i><span>+57 300 000 0000</span></div>
+        <div class="footer-contact-item"><i class="fas fa-map-marker-alt"></i><span>Cartagena de Indias, Colombia</span></div>
+        <div class="footer-contact-item"><i class="fas fa-headset"></i><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d8b5b9b6b9bfbdaa98b9b4acaeb5b9aaf6bbb7b5">[email&#160;protected]</a></span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 @altvmar — Todos los derechos reservados</span>
+      <span class="footer-copy">Made with <span style="color:var(--red)">♥</span> in Cartagena</span>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── PRELOADER ──
+let pct = 0;
+const preBar = document.getElementById('preBar');
+const prePct = document.getElementById('prePct');
+const preloader = document.getElementById('preloader');
+const interval = setInterval(() => {
+  pct += Math.random() * 18 + 4;
+  if (pct >= 100) { pct = 100; clearInterval(interval); setTimeout(() => { preloader.classList.add('hidden'); }, 300); }
+  preBar.style.width = pct + '%';
+  prePct.textContent = Math.floor(pct) + '%';
+}, 80);
+
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+document.querySelectorAll('a, button, .video-card, .crew-card, .event-card, .disco-card, .g-item, .press-card').forEach(el => {
+  el.addEventListener('mouseenter', () => ring.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => ring.classList.remove('hovering'));
+});
+
+// ── NAVBAR ──
+window.addEventListener('scroll', () => {
+  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ── INTERSECTION OBSERVER ──
+const allReveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+allReveals.forEach(el => obs.observe(el));
+
+// ── SMOOTH SCROLL ──
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+// ── PARTICLE CANVAS ──
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+for (let i = 0; i < 60; i++) {
+  particles.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, r: Math.random() * 1.2 + 0.2, dx: (Math.random() - 0.5) * 0.3, dy: (Math.random() - 0.5) * 0.3, o: Math.random() * 0.4 + 0.05 });
+}
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(220,38,38,${p.o})`; ctx.fill();
+    p.x += p.dx; p.y += p.dy;
+    if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── AUDIO PLAYER ──
+const TRACKS = [
+  { id: 0, title: 'Sin Miedo',       artist: '@altvmar',             art: 'SM', genre: 'Trap / Urbano', duration: 204, src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+  { id: 1, title: 'La Calle Llama',  artist: '@altvmar',             art: 'CL', genre: 'Drill',          duration: 178, src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
+  { id: 2, title: 'Fuego Lento',     artist: '@altvmar ft. afrobas', art: 'FL', genre: 'Afrobeats / R&B', duration: 245, src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
+  { id: 3, title: 'Costa Roja',      artist: '@altvmar',             art: 'CR', genre: 'Urbano',          duration: 191, src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
+];
+
+let apCurrentIdx = 0;
+let apPlaying = false;
+let apRepeatMode = 0; // 0=off 1=all 2=one
+let apShuffleOn = false;
+let apMuted = false;
+let apLiked = false;
+let queueOpen = false;
+
+const audio = new Audio();
+audio.volume = 0.7;
+audio.crossOrigin = 'anonymous';
+
+function fmtTime(s) {
+  s = Math.floor(s || 0);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+function loadTrack(idx, autoplay) {
+  const t = TRACKS[idx];
+  apCurrentIdx = idx;
+  audio.src = t.src;
+  audio.load();
+  document.getElementById('apTitle').textContent = t.title;
+  document.querySelector('.ap-artist').textContent = t.artist;
+  document.getElementById('apCoverArt').textContent = t.art;
+  document.getElementById('apTot').textContent = fmtTime(t.duration);
+  document.getElementById('apFill').style.width = '0%';
+  document.getElementById('apCur').textContent = '0:00';
+  renderQueue();
+  if (autoplay) playAudio();
+  else pauseAudio();
+}
+
+function playAudio() {
+  audio.play().catch(() => {});
+  apPlaying = true;
+  document.getElementById('apIcon').className = 'fas fa-pause';
+  document.getElementById('apPlayBtn').classList.remove('paused');
+  document.getElementById('apCover').classList.add('spinning');
+  document.querySelectorAll('.ap-bar').forEach(b => b.classList.add('active'));
+}
+
+function pauseAudio() {
+  audio.pause();
+  apPlaying = false;
+  document.getElementById('apIcon').className = 'fas fa-play';
+  document.getElementById('apPlayBtn').classList.add('paused');
+  document.getElementById('apCover').classList.remove('spinning');
+  document.querySelectorAll('.ap-bar').forEach(b => b.classList.remove('active'));
+}
+
+function togglePlay() {
+  if (!document.getElementById('audioPlayer').classList.contains('visible')) return;
+  apPlaying ? pauseAudio() : playAudio();
+}
+
+function openAudioPlayer(title) {
+  const idx = TRACKS.findIndex(t => t.title === title);
+  const i = idx >= 0 ? idx : 0;
+  const player = document.getElementById('audioPlayer');
+  player.classList.add('visible');
+  if (i === apCurrentIdx && audio.src && audio.src !== window.location.href) {
+    apPlaying ? pauseAudio() : playAudio();
+    return;
+  }
+  loadTrack(i, true);
+}
+
+function closePlayer() {
+  pauseAudio();
+  document.getElementById('audioPlayer').classList.remove('visible');
+  if (queueOpen) { queueOpen = false; document.getElementById('apQueue').classList.remove('open'); }
+}
+
+function prevTrack() {
+  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+  let idx = apShuffleOn ? Math.floor(Math.random() * TRACKS.length) : (apCurrentIdx - 1 + TRACKS.length) % TRACKS.length;
+  loadTrack(idx, apPlaying);
+}
+
+function nextTrack() {
+  if (apRepeatMode === 2) { audio.currentTime = 0; if (apPlaying) playAudio(); return; }
+  let idx = apShuffleOn ? Math.floor(Math.random() * TRACKS.length) : (apCurrentIdx + 1) % TRACKS.length;
+  loadTrack(idx, apPlaying);
+}
+
+audio.addEventListener('ended', () => {
+  if (apRepeatMode === 2) { audio.currentTime = 0; playAudio(); }
+  else if (apRepeatMode === 1 || apCurrentIdx < TRACKS.length - 1) { nextTrack(); }
+  else { pauseAudio(); audio.currentTime = 0; document.getElementById('apFill').style.width = '0%'; }
+});
+
+audio.addEventListener('timeupdate', () => {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('apFill').style.width = pct + '%';
+  document.getElementById('apCur').textContent = fmtTime(audio.currentTime);
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('apTot').textContent = fmtTime(audio.duration);
+});
+
+// Progress bar click & drag
+const progressBar = document.getElementById('apProgressBar');
+let isDragging = false;
+
+function seekTo(e) {
+  const rect = progressBar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  document.getElementById('apFill').style.width = (pct * 100) + '%';
+  if (audio.duration) audio.currentTime = pct * audio.duration;
+}
+
+progressBar.addEventListener('mousedown', e => { isDragging = true; seekTo(e); });
+document.addEventListener('mousemove', e => { if (isDragging) seekTo(e); });
+document.addEventListener('mouseup', () => { isDragging = false; });
+progressBar.addEventListener('click', seekTo);
+
+// Touch support for progress bar
+progressBar.addEventListener('touchstart', e => { isDragging = true; seekTo(e.touches[0]); }, { passive: true });
+document.addEventListener('touchmove', e => { if (isDragging) seekTo(e.touches[0]); }, { passive: true });
+document.addEventListener('touchend', () => { isDragging = false; });
+
+// Volume
+function setVolume(val) {
+  apMuted = false;
+  audio.muted = false;
+  audio.volume = val / 100;
+  const icon = document.getElementById('apVolIcon').querySelector('i');
+  icon.className = val == 0 ? 'fas fa-volume-mute' : val < 50 ? 'fas fa-volume-down' : 'fas fa-volume-up';
+  const s = document.getElementById('apVolSlider');
+  s.style.background = `linear-gradient(to right, var(--red) ${val}%, rgba(255,255,255,0.1) ${val}%)`;
+}
+
+function toggleMute() {
+  apMuted = !apMuted;
+  audio.muted = apMuted;
+  document.getElementById('apVolIcon').querySelector('i').className = apMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+}
+
+// Shuffle
+function toggleShuffle() {
+  apShuffleOn = !apShuffleOn;
+  document.getElementById('apShuffle').classList.toggle('active', apShuffleOn);
+}
+
+// Repeat cycle: off → all → one
+function toggleRepeat() {
+  apRepeatMode = (apRepeatMode + 1) % 3;
+  const btn = document.getElementById('apRepeat');
+  const icon = btn.querySelector('i');
+  if (apRepeatMode === 0) { btn.classList.remove('active'); icon.className = 'fas fa-redo'; btn.title = 'Repetir'; }
+  else if (apRepeatMode === 1) { btn.classList.add('active'); icon.className = 'fas fa-redo'; btn.title = 'Repetir todo'; }
+  else { btn.classList.add('active'); icon.className = 'fas fa-redo-alt'; btn.title = 'Repetir una'; }
+}
+
+// Like
+function toggleLike() {
+  apLiked = !apLiked;
+  const btn = document.getElementById('apLike');
+  btn.classList.toggle('liked', apLiked);
+  btn.querySelector('i').className = apLiked ? 'fas fa-heart' : 'far fa-heart';
+}
+
+// Queue
+function toggleQueue() {
+  queueOpen = !queueOpen;
+  document.getElementById('apQueue').classList.toggle('open', queueOpen);
+}
+
+function renderQueue() {
+  const list = document.getElementById('queueList');
+  list.innerHTML = TRACKS.map((t, i) => `
+    <div class="queue-item ${i === apCurrentIdx ? 'current' : ''}" onclick="loadTrack(${i}, true)">
+      <span class="q-num">${i === apCurrentIdx ? '<i class="fas fa-volume-up" style="color:var(--red)"></i>' : (i + 1)}</span>
+      <div class="q-art">${t.art}</div>
+      <div class="q-info">
+        <div class="q-title">${t.title}</div>
+        <div class="q-meta">${t.genre}</div>
+      </div>
+      <span class="q-dur">${fmtTime(t.duration)}</span>
+    </div>
+  `).join('');
+}
+
+renderQueue();
+setVolume(70);
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  const player = document.getElementById('audioPlayer');
+  if (!player.classList.contains('visible')) return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.code === 'ArrowRight' && e.altKey) nextTrack();
+  if (e.code === 'ArrowLeft' && e.altKey) prevTrack();
+  if (e.code === 'KeyM') toggleMute();
+});
+
+// ── COUNTER ANIMATION ──
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  const numEl = el.querySelector('.counter-num');
+  const duration = 1800;
+  const startTime = performance.now();
+
+  function easeOutExpo(t) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  }
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutExpo(progress);
+    const current = Math.floor(eased * target);
+    numEl.textContent = current;
+    if (progress < 1) requestAnimationFrame(update);
+    else numEl.textContent = target;
+  }
+
+  requestAnimationFrame(update);
+}
+
+const counterObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      animateCounter(e.target);
+      counterObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
+
+// ── OPEN YOUTUBE ──
+function openYT(id) { window.open('https://www.youtube.com/watch?v=' + id, '_blank'); }
+
+// ── FORM ──
+function submitForm() {
+  document.getElementById('formContent').style.display = 'none';
+  document.getElementById('formSuccess').style.display = 'block';
+}
+</script>
+</body>
+</html>
